@@ -161,16 +161,39 @@ export class RestaurantsCdkStack extends cdk.Stack {
   }
 
   private createDynamoDBTable() {
-    // Students TODO: Change the table schema as needed
-
+    // Create a DynamoDB Table
+    // PK: RestaurantName (String)
+    // GSI: Cuisine (String), Rating (Number)
+    // GSI: GeoRegion (String), Rating (Number)
+    // GSI GeoRegion_Cuisine (String), Rating (Number)
+    
     const table = new dynamodb.Table(this, 'Restaurants', {
-      partitionKey: { name: 'SimpleKey', type: dynamodb.AttributeType.STRING },
+      partitionKey: { name: 'RestaurantName', type: dynamodb.AttributeType.STRING },
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       billingMode: dynamodb.BillingMode.PROVISIONED,
-      readCapacity: 1, // Note for students: you may need to change this num read capacity for scaling testing if you belive that is right
-      writeCapacity: 1, // Note for students: you may need to change this num write capacity for scaling testing if you belive that is right
+      readCapacity: 1,
+      writeCapacity: 1,
     });
 
+    table.addGlobalSecondaryIndex({
+      indexName: 'Cuisine-Rating-index',
+      partitionKey: { name: 'Cuisine', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'Rating', type: dynamodb.AttributeType.NUMBER },
+    });
+
+    table.addGlobalSecondaryIndex({
+      indexName: 'GeoRegion-Rating-index',
+      partitionKey: { name: 'GeoRegion', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'Rating', type: dynamodb.AttributeType.NUMBER },
+    });
+
+    table.addGlobalSecondaryIndex({
+      indexName: 'GeoRegion_Cuisine-Rating-index',
+      partitionKey: { name: 'GeoRegion_Cuisine', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'Rating', type: dynamodb.AttributeType.NUMBER },
+    });
+
+    
     // Output the table name
     new cdk.CfnOutput(this, 'TableName', {
       value: table.tableName,
